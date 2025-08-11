@@ -96,7 +96,7 @@ export const Dashboard: React.FC = () => {
           <p className="text-gray-600">Visão geral das suas campanhas de email</p>
         </div>
         <Button onClick={() => setIsModalOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="mr-2 h-4 w-4 " />
           Nova Campanha
         </Button>
       </div>
@@ -181,7 +181,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-        
+
       </div>
 
       <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Nova Campanha">
