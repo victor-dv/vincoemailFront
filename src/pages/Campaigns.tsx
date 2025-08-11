@@ -78,7 +78,7 @@ export const Campaigns: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Campanhas</h1>
           <p className="text-gray-600">
-            Gerencie todas as suas campanhas de email marketing
+            Gerencie suas campanhas
           </p>
         </div>
         <Button>

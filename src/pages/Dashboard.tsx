@@ -51,7 +51,7 @@ export const Dashboard: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
           <p className="text-gray-600">
-            Visão geral das suas campanhas de email marketing
+            Visão geral das suas campanhas
           </p>
         </div>
         <Button>
@@ -62,7 +62,7 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Cards de Estatísticas */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -72,9 +72,7 @@ export const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">{stats.totalCampaigns}</div>
-            <p className="text-xs text-gray-600">
-              +2 desde o mês passado
-            </p>
+       
           </CardContent>
         </Card>
 
@@ -87,24 +85,7 @@ export const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">{stats.totalSent.toLocaleString()}</div>
-            <p className="text-xs text-gray-600">
-              +12% desde o mês passado
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Taxa de Abertura
-            </CardTitle>
-            <Eye className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stats.openRate}%</div>
-            <p className="text-xs text-gray-600">
-              +2.1% desde o mês passado
-            </p>
+         
           </CardContent>
         </Card>
 
@@ -117,15 +98,13 @@ export const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">{stats.clickRate}%</div>
-            <p className="text-xs text-gray-600">
-              +0.3% desde o mês passado
-            </p>
+         
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Campanhas Recentes */}
+      <div className="grid gap-6 md:grid-cols-1">
+   
         <Card>
           <CardHeader>
             <CardTitle className="text-yellow-700">Campanhas Recentes</CardTitle>
@@ -165,43 +144,6 @@ export const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Performance Overview */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-yellow-700">Performance Geral</CardTitle>
-            <CardDescription>
-              Métricas de engajamento das suas campanhas
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span>Taxa de Abertura</span>
-                <span className="font-medium text-yellow-700">{stats.openRate}%</span>
-              </div>
-              <Progress value={stats.openRate} />
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span>Taxa de Cliques</span>
-                <span className="font-medium text-yellow-700">{stats.clickRate}%</span>
-              </div>
-              <Progress value={stats.clickRate} />
-            </div>
-
-            <div className="pt-4 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Campanhas Ativas</span>
-                <Badge>{stats.activeCampaigns}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Campanhas Agendadas</span>
-                <Badge className="bg-blue-100 text-blue-800">{stats.scheduledCampaigns}</Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   )
