@@ -37,8 +37,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <div className="flex items-center gap-2">
             <img src={img} alt="Logo Vinco leilões" className='h-8 w-auto' />
             <div className="flex flex-col">
-              <span className="font-semibold text-lg text-gray-900">VincoMail</span>
-              <span className="text-xs text-gray-600">Email Marketing</span>
+              <span className="font-semibold text-lg text-gray-900"><span className='font-semibold text-lg text-yellow-600'>Vinco</span>Email</span>
+              <span className="text-xs text-gray-600">Campanhas de Email</span>
             </div>
           </div>
           <button
