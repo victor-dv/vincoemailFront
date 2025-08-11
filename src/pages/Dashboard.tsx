@@ -58,6 +58,7 @@ export const Dashboard: React.FC = () => {
           <Plus className="mr-2 h-4 w-4" />
           Nova Campanha
         </Button>
+        
       </div>
 
       {/* Cards de Estatísticas */}

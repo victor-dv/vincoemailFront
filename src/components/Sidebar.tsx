@@ -1,6 +1,7 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
 import { Home, Mail, FileText, Settings, Users, X } from 'lucide-react'
+import img from '../assets/logo.png'
 
 interface SidebarProps {
   isOpen: boolean
@@ -34,9 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-600 text-white">
-              <Mail className="h-4 w-4" />
-            </div>
+            <img src={img} alt="Logo Vinco leilões" className='h-8 w-auto' />
             <div className="flex flex-col">
               <span className="font-semibold text-lg text-gray-900">VincoMail</span>
               <span className="text-xs text-gray-600">Email Marketing</span>
