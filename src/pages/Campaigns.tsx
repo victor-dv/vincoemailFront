@@ -9,9 +9,9 @@ export const Campaigns: React.FC = () => {
   const campaigns = [
     {
       id: 1,
-      name: "Promoção Black Friday 2024",
+      name: "Envio de email para advogados",
       status: "active",
-      template: "Promocional",
+      template: "Email Advogados",
       sent: 2500,
       opens: 612,
       clicks: 89,
@@ -21,9 +21,9 @@ export const Campaigns: React.FC = () => {
     },
     {
       id: 2,
-      name: "Newsletter Semanal #45",
+      name: "Envio de emails para varas",
       status: "completed",
-      template: "Newsletter",
+      template: "Envio para varas",
       sent: 1800,
       opens: 441,
       clicks: 67,
@@ -33,9 +33,9 @@ export const Campaigns: React.FC = () => {
     },
     {
       id: 3,
-      name: "Lançamento Produto X",
+      name: "Envio de emails para clientes",
       status: "scheduled",
-      template: "Lançamento",
+      template: "Marketing",
       sent: 0,
       opens: 0,
       clicks: 0,
@@ -46,7 +46,7 @@ export const Campaigns: React.FC = () => {
     {
       id: 4,
       name: "Pesquisa de Satisfação",
-      status: "draft",
+      status: "active",
       template: "Pesquisa",
       sent: 0,
       opens: 0,
@@ -64,7 +64,7 @@ export const Campaigns: React.FC = () => {
       case 'completed':
         return <Badge variant="secondary">Concluída</Badge>
       case 'scheduled':
-        return <Badge className="bg-blue-100 text-blue-800">Agendada</Badge>
+        return <Badge variant='outline'>Agendada</Badge>
       case 'draft':
         return <Badge variant="outline">Rascunho</Badge>
       default:
