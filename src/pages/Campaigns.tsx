@@ -16,21 +16,23 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/Table";
-import { Plus, MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2 } from "lucide-react";
 import { Modal } from "../components/ui/Modal";
 import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/Textarea";
 import { Select } from "../components/ui/Select";
-import Swal from 'sweetalert2'
-
+import Swal from "sweetalert2";
 
 export const Campaigns: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCampaign, setEditingCampaign] = useState<any>(null);
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     template: "",
   });
+
   const emailTemplates = [
     { value: "newsletter", label: "Newsletter Padrão" },
     { value: "promotional", label: "Promocional" },
@@ -44,50 +46,35 @@ export const Campaigns: React.FC = () => {
       id: 1,
       name: "Envio de email para advogados",
       status: "active",
-      template: "Email Advogados",
+      template: "newsletter",
       sent: 2500,
       opens: 612,
       clicks: 89,
-      openRate: 24.5,
-      clickRate: 3.6,
       createdAt: "2024-01-15",
+      description: "Campanha para enviar emails aos advogados.",
     },
     {
       id: 2,
       name: "Envio de emails para varas",
       status: "completed",
-      template: "Envio para varas",
+      template: "promotional",
       sent: 1800,
       opens: 441,
       clicks: 67,
-      openRate: 24.5,
-      clickRate: 3.7,
       createdAt: "2024-01-12",
+      description: "Campanha para comunicação com as varas.",
     },
     {
       id: 3,
-      name: "Envio de emails para clientes",
-      status: "scheduled",
-      template: "Marketing",
-      sent: 0,
-      opens: 0,
-      clicks: 0,
-      openRate: 0,
-      clickRate: 0,
-      createdAt: "2024-01-10",
-    },
-    {
-      id: 4,
-      name: "Pesquisa de Satisfação",
-      status: "active",
-      template: "Pesquisa",
-      sent: 0,
-      opens: 0,
-      clicks: 0,
-      openRate: 0,
-      clickRate: 0,
-      createdAt: "2024-01-08",
-    },
+      name: "Envio de emails para varas",
+      status: "completed",
+      template: "promotional",
+      sent: 1800,
+      opens: 441,
+      clicks: 67,
+      createdAt: "2024-01-12",
+      description: "Campanha para comunicação com as varas.",
+    }
   ];
 
   const getStatusBadge = (status: string) => {
@@ -98,12 +85,11 @@ export const Campaigns: React.FC = () => {
         return <Badge variant="secondary">Concluída</Badge>;
       case "scheduled":
         return <Badge variant="outline">Agendada</Badge>;
-      case "draft":
-        return <Badge variant="outline">Rascunho</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
+
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -111,18 +97,31 @@ export const Campaigns: React.FC = () => {
     }));
   };
 
-  const handleCreateCampaign = () => {
-    // TODO: Integrar com API
-    console.log("Nova campanha:", formData);
-
-    // Reset form and close modal
+  const handleSaveCampaign = () => {
+    if (editingCampaign) {
+      console.log("Atualizando campanha:", { id: editingCampaign.id, ...formData });
+    } else {
+      console.log("Criando nova campanha:", formData);
+    }
     setFormData({ name: "", description: "", template: "" });
+    setEditingCampaign(null);
     setIsModalOpen(false);
+  };
+
+  const handleOpenEditModal = (campaign: any) => {
+    setEditingCampaign(campaign);
+    setFormData({
+      name: campaign.name,
+      description: campaign.description || "",
+      template: campaign.template,
+    });
+    setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setFormData({ name: "", description: "", template: "" });
+    setEditingCampaign(null);
   };
 
   return (
@@ -135,7 +134,7 @@ export const Campaigns: React.FC = () => {
           <p className="text-gray-600">Gerencie suas campanhas</p>
         </div>
         <Button onClick={() => setIsModalOpen(true)}>
-          <Plus className="mr-2 h-4 w-4 " />
+          <Plus className="mr-2 h-4 w-4" />
           Nova Campanha
         </Button>
       </div>
@@ -143,9 +142,7 @@ export const Campaigns: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle>Campanhas</CardTitle>
-          <CardDescription>
-            Lista completa das suas campanhas de email
-          </CardDescription>
+          <CardDescription>Lista completa das suas campanhas</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -157,66 +154,54 @@ export const Campaigns: React.FC = () => {
                 <TableHead className="text-right">Enviados</TableHead>
                 <TableHead className="text-right">Aberturas</TableHead>
                 <TableHead className="text-right">Cliques</TableHead>
-            
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody className="align-middle text-left">
+            <TableBody>
               {campaigns.map((campaign) => (
                 <TableRow key={campaign.id}>
                   <TableCell className="font-medium">
-                    <div>
-                      <div>{campaign.name}</div>
-                      <div className="text-sm text-gray-600">
-                        Criada em{" "}
-                        {new Date(campaign.createdAt).toLocaleDateString(
-                          "pt-BR"
-                        )}
-                      </div>
-                    </div>
+                    {campaign.name}
                   </TableCell>
                   <TableCell>{getStatusBadge(campaign.status)}</TableCell>
                   <TableCell>{campaign.template}</TableCell>
-                  <TableCell className="text-right">
-                    {campaign.sent.toLocaleString()}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {campaign.opens.toLocaleString()}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {campaign.clicks.toLocaleString()}
-                  </TableCell>
-           
-                  <TableCell className="text-right">
-                    <div className=" gap-3 ml-10 ">
-
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-600 hover:text-red-700"
-                        onClick={() => Swal.fire({
+                  <TableCell className="text-right">{campaign.sent}</TableCell>
+                  <TableCell className="text-right">{campaign.opens}</TableCell>
+                  <TableCell className="text-right">{campaign.clicks}</TableCell>
+                  <TableCell className="text-right flex justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleOpenEditModal(campaign)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700"
+                      onClick={() =>
+                        Swal.fire({
                           title: "Você tem certeza?",
                           text: "Não será possível reverter esta ação!",
                           icon: "warning",
                           showCancelButton: true,
                           confirmButtonColor: "#3085d6",
                           cancelButtonColor: "#d33",
-                          confirmButtonText: "Deletar!"
+                          confirmButtonText: "Deletar!",
                         }).then((result) => {
                           if (result.isConfirmed) {
                             Swal.fire({
                               title: "Deletado!",
-                              text: "Sua campanha foi delatada com sucesso!",
-                              icon: "success"
+                              text: "Sua campanha foi excluída.",
+                              icon: "success",
                             });
                           }
-                        })}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                        })
+                      }
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -228,49 +213,37 @@ export const Campaigns: React.FC = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title="Nova Campanha"
+        title={editingCampaign ? "Editar Campanha" : "Nova Campanha"}
       >
         <div className="space-y-4">
           <Input
             label="Nome da Campanha"
-            placeholder="Digite o nome da campanha"
+            placeholder="Digite o nome"
             value={formData.name}
             onChange={(e) => handleInputChange("name", e.target.value)}
           />
-
           <Textarea
             label="Descrição"
-            placeholder="Descreva o objetivo da campanha"
+            placeholder="Digite a descrição"
             value={formData.description}
             onChange={(e) => handleInputChange("description", e.target.value)}
           />
-
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700">
-              Modelo de Email
-            </label>
-            <Select
-              options={emailTemplates}
-              value={formData.template}
-              onChange={(value) => handleInputChange("template", value)}
-              placeholder="Selecione um modelo"
-            />
-          </div>
-
+          <Select
+            options={emailTemplates}
+            value={formData.template}
+            onChange={(value) => handleInputChange("template", value)}
+            placeholder="Selecione um modelo"
+          />
           <div className="flex gap-3 pt-4">
-            <Button
-              variant="outline"
-              onClick={handleCloseModal}
-              className="flex-1 bg-transparent"
-            >
+            <Button variant="outline" onClick={handleCloseModal} className="flex-1">
               Cancelar
             </Button>
             <Button
-              onClick={handleCreateCampaign}
+              onClick={handleSaveCampaign}
               className="flex-1"
               disabled={!formData.name || !formData.template}
             >
-              Criar
+              {editingCampaign ? "Salvar Alterações" : "Criar"}
             </Button>
           </div>
         </div>
