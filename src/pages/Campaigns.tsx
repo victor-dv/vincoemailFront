@@ -21,6 +21,8 @@ import { Modal } from "../components/ui/Modal";
 import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/Textarea";
 import { Select } from "../components/ui/Select";
+import Swal from 'sweetalert2'
+
 
 export const Campaigns: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -155,12 +157,10 @@ export const Campaigns: React.FC = () => {
                 <TableHead className="text-right">Enviados</TableHead>
                 <TableHead className="text-right">Aberturas</TableHead>
                 <TableHead className="text-right">Cliques</TableHead>
-                <TableHead className="text-right">Taxa Abertura</TableHead>
-                <TableHead className="text-right">Taxa Cliques</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+            
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="align-middle text-left">
               {campaigns.map((campaign) => (
                 <TableRow key={campaign.id}>
                   <TableCell className="font-medium">
@@ -185,15 +185,10 @@ export const Campaigns: React.FC = () => {
                   <TableCell className="text-right">
                     {campaign.clicks.toLocaleString()}
                   </TableCell>
+           
                   <TableCell className="text-right">
-                    {campaign.openRate > 0 ? `${campaign.openRate}%` : "-"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {campaign.clickRate > 0 ? `${campaign.clickRate}%` : "-"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center gap-2">
-               
+                    <div className=" gap-3 ml-10 ">
+
                       <Button variant="ghost" size="sm">
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -201,6 +196,23 @@ export const Campaigns: React.FC = () => {
                         variant="ghost"
                         size="sm"
                         className="text-red-600 hover:text-red-700"
+                        onClick={() => Swal.fire({
+                          title: "Você tem certeza?",
+                          text: "Não será possível reverter esta ação!",
+                          icon: "warning",
+                          showCancelButton: true,
+                          confirmButtonColor: "#3085d6",
+                          cancelButtonColor: "#d33",
+                          confirmButtonText: "Deletar!"
+                        }).then((result) => {
+                          if (result.isConfirmed) {
+                            Swal.fire({
+                              title: "Deletado!",
+                              text: "Sua campanha foi delatada com sucesso!",
+                              icon: "success"
+                            });
+                          }
+                        })}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

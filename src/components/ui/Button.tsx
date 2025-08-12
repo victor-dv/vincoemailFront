@@ -18,7 +18,7 @@ export const Button: React.FC<ButtonProps> = ({
   const variants = {
     default: 'bg-yellow-600 text-white hover:bg-yellow-700 cursor-pointer ',
     outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
-    ghost: 'text-gray-700 hover:bg-gray-100'
+    ghost: 'text-gray-700 hover:bg-gray-100 cursor-pointer'
   }
   
   const sizes = {
