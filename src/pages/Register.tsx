@@ -9,11 +9,13 @@ import { Input } from "../components/ui/Input"
 import { Card } from "../components/ui/Card"
 import logo from "../assets/logo.png"
 
+import { registerUser } from "../service/UseService"
+
 export default function Register() {
     const [formData, setFormData] = useState({
         name: "",
         email: "",
-        company: "",
+        username: "",
         password: "",
         confirmPassword: "",
     })
@@ -31,20 +33,27 @@ export default function Register() {
         }
 
         setIsLoading(true)
-
-        // Simular chamada de API
-        setTimeout(() => {
-            setIsLoading(false)
-            navigate("/dashboard")
-        }, 1000)
-    }
-
+        try {
+            await registerUser({
+                name: formData.name,
+                email: formData.email,
+                username: formData.username,
+                password: formData.password,
+            });
+            alert("Conta criada com sucesso!");
+            navigate("/dashboard");
+        } catch (error: any) {
+            alert("Erro ao criar conta: " + (error.response?.data || error.message));
+        } finally {
+            setIsLoading(false);
+        }
+    };
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({
             ...formData,
             [e.target.name]: e.target.value,
-        })
-    }
+        });
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
@@ -53,7 +62,7 @@ export default function Register() {
                     <div className="w-16 h-16 bg-gradient-to-rjustify-center mx-auto mb-4">
                         <img src={logo} alt="" />
                     </div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2"><span className="text-yellow-600">Vinco</span>Email</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">VincoEmail</h1>
                     <p className="text-gray-600">Crie sua conta</p>
                 </div>
 
@@ -90,7 +99,21 @@ export default function Register() {
                         </div>
                     </div>
 
-
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                        <div className="relative">
+                            <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                            <Input
+                                type="text"
+                                name="username"
+                                value={formData.username}
+                                onChange={handleChange}
+                                className="pl-10"
+                                placeholder="Username"
+                                required
+                            />
+                        </div>
+                    </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Senha</label>
