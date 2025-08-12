@@ -1,14 +1,14 @@
-import React from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { Layout } from './components/Layout'
-import { Dashboard } from './pages/Dashboard'
-import { Campaigns } from './pages/Campaigns'
-import { Templates } from './pages/Templates'
-import { Settings } from './pages/Settings'
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { Layout } from "./components/Layout"
+import { Dashboard } from "./pages/Dashboard"
+import { Campaigns } from "./pages/Campaigns"
+import { Templates } from "./pages/Templates"
+import { Settings } from "./pages/Settings"
+import { CampaignInputs } from "./pages/CampaignInputs"
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/" element={<Layout />}>
@@ -16,9 +16,10 @@ function App() {
           <Route path="campaigns" element={<Campaigns />} />
           <Route path="templates" element={<Templates />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="campaigns/:campaignId/inputs" element={<CampaignInputs />} />
         </Route>
       </Routes>
-    </Router>
+    </BrowserRouter>
   )
 }
 
