@@ -193,9 +193,7 @@ export const Campaigns: React.FC = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
+               
                       <Button variant="ghost" size="sm">
                         <Edit className="h-4 w-4" />
                       </Button>
