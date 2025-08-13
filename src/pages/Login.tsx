@@ -93,6 +93,7 @@ export default function Login() {
                 className="pl-10 pr-10"
                 placeholder="••••••••"
                 required
+                maxLength={20}
               />
               <button
                 type="button"

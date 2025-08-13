@@ -100,7 +100,7 @@ export const CampaignInputs: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" onClick={() => navigate("/dashboard/campaigns")} className="p-2">
+          <Button variant="ghost" onClick={() => navigate("/campaigns")} className="p-2">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>

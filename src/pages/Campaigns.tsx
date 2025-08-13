@@ -1,15 +1,36 @@
 "use client"
 
 import type React from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/Card"
-import { Button } from "../components/ui/Button"
 import { Badge } from "../components/ui/Badge"
+import { Button } from "../components/ui/Button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/Table"
-import { Plus, Eye, Edit, Trash2, Settings } from "lucide-react"
+import { Plus, Edit, Trash2, Settings } from "lucide-react"
+import Swal from "sweetalert2"
+import { Modal } from "../components/ui/Modal"
+import { Input } from "../components/ui/Input"
+import { Textarea } from "../components/ui/Textarea"
+import { Select } from "../components/ui/Select"
 
 export const Campaigns: React.FC = () => {
   const navigate = useNavigate()
+
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    template: "",
+  })
+
+  const emailTemplates = [
+    { value: "newsletter", label: "Newsletter Padrão" },
+    { value: "promotional", label: "Promocional" },
+    { value: "welcome", label: "Boas-vindas" },
+    { value: "announcement", label: "Anúncio" },
+    { value: "event", label: "Evento" },
+  ]
 
   const campaigns = [
     {
@@ -20,8 +41,6 @@ export const Campaigns: React.FC = () => {
       sent: 2500,
       opens: 612,
       clicks: 89,
-      openRate: 24.5,
-      clickRate: 3.6,
       createdAt: "2024-01-15",
     },
     {
@@ -32,8 +51,6 @@ export const Campaigns: React.FC = () => {
       sent: 1800,
       opens: 441,
       clicks: 67,
-      openRate: 24.5,
-      clickRate: 3.7,
       createdAt: "2024-01-12",
     },
     {
@@ -44,23 +61,27 @@ export const Campaigns: React.FC = () => {
       sent: 0,
       opens: 0,
       clicks: 0,
-      openRate: 0,
-      clickRate: 0,
       createdAt: "2024-01-10",
     },
-    {
-      id: 4,
-      name: "Pesquisa de Satisfação",
-      status: "draft",
-      template: "Pesquisa",
-      sent: 0,
-      opens: 0,
-      clicks: 0,
-      openRate: 0,
-      clickRate: 0,
-      createdAt: "2024-01-08",
-    },
   ]
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  const handleCreateCampaign = () => {
+    console.log("Nova campanha:", formData)
+    setFormData({ name: "", description: "", template: "" })
+    setIsModalOpen(false)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setFormData({ name: "", description: "", template: "" })
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -83,17 +104,19 @@ export const Campaigns: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Campanhas</h1>
           <p className="text-gray-600">Gerencie todas as suas campanhas de email marketing</p>
         </div>
-        <Button>
+        <Button onClick={() => setIsModalOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Nova Campanha
         </Button>
       </div>
 
+      {/* Lista de campanhas */}
       <Card>
         <CardHeader>
           <CardTitle>Campanhas</CardTitle>
@@ -109,8 +132,6 @@ export const Campaigns: React.FC = () => {
                 <TableHead className="text-right">Enviados</TableHead>
                 <TableHead className="text-right">Aberturas</TableHead>
                 <TableHead className="text-right">Cliques</TableHead>
-                <TableHead className="text-right">Taxa Abertura</TableHead>
-                <TableHead className="text-right">Taxa Cliques</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -130,28 +151,43 @@ export const Campaigns: React.FC = () => {
                   <TableCell className="text-right">{campaign.sent.toLocaleString()}</TableCell>
                   <TableCell className="text-right">{campaign.opens.toLocaleString()}</TableCell>
                   <TableCell className="text-right">{campaign.clicks.toLocaleString()}</TableCell>
-                  <TableCell className="text-right">{campaign.openRate > 0 ? `${campaign.openRate}%` : "-"}</TableCell>
                   <TableCell className="text-right">
-                    {campaign.clickRate > 0 ? `${campaign.clickRate}%` : "-"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center gap-2">
+                    <div className="flex gap-1 justify-end">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleConfigureInputs(campaign.id)}
                         className="text-yellow-600 hover:text-yellow-700"
-                        title="Configurar Inputs"
                       >
                         <Settings className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                      <Button
+                        onClick={() =>
+                          Swal.fire({
+                            title: "Você tem certeza?",
+                            text: "Não será possível reverter esta ação!",
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonColor: "#3085d6",
+                            cancelButtonColor: "#d33",
+                            confirmButtonText: "Deletar!",
+                          }).then((result) => {
+                            if (result.isConfirmed) {
+                              Swal.fire({
+                                title: "Deletado!",
+                                text: "Sua campanha foi excluída.",
+                                icon: "success",
+                              })
+                            }
+                          })
+                        }
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700"
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -162,6 +198,44 @@ export const Campaigns: React.FC = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Modal de criação */}
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Nova Campanha">
+        <div className="space-y-4">
+          <Input
+            label="Nome da Campanha"
+            placeholder="Digite o nome da campanha"
+            value={formData.name}
+            onChange={(e) => handleInputChange("name", e.target.value)}
+          />
+
+          <Textarea
+            label="Descrição"
+            placeholder="Descreva o objetivo da campanha"
+            value={formData.description}
+            onChange={(e) => handleInputChange("description", e.target.value)}
+          />
+
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700">Modelo de Email</label>
+            <Select
+              options={emailTemplates}
+              value={formData.template}
+              onChange={(value) => handleInputChange("template", value)}
+              placeholder="Selecione um modelo"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button variant="outline" onClick={handleCloseModal} className="flex-1 bg-transparent">
+              Cancelar
+            </Button>
+            <Button onClick={handleCreateCampaign} className="flex-1" disabled={!formData.name || !formData.template}>
+              Criar
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }
