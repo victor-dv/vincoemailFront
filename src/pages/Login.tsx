@@ -9,6 +9,8 @@ import { Input } from "../components/ui/Input"
 import { Card } from "../components/ui/Card"
 import logo from "../assets/logo.png"
 
+import { loginUser } from "../service/UseService"
+
 export default function Login() {
   const [formData, setFormData] = useState({
     email: "",
@@ -23,10 +25,18 @@ export default function Login() {
     setIsLoading(true)
 
     // Simular chamada de API
-    setTimeout(() => {
+    try {
+       await loginUser({
+        email: formData.email,
+        password: formData.password
+       })
+       alert("Entrando no sistema")
+       navigate("/dashboard")
+    } catch (error: any) {
+      alert("Erro ao entrar na conta: " + (error.response?.data || error.message))
+    } finally {
       setIsLoading(false)
-      navigate("/dashboard")
-    }, 1000)
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

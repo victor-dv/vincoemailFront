@@ -8,6 +8,7 @@ import { Button } from "../components/ui/Button"
 import { Input } from "../components/ui/Input"
 import { Card } from "../components/ui/Card"
 import logo from "../assets/logo.png"
+import Swal from "sweetalert2"
 
 import { registerUser } from "../service/UseService"
 
@@ -28,8 +29,20 @@ export default function Register() {
         e.preventDefault()
 
         if (formData.password !== formData.confirmPassword) {
-            alert("As senhas não coincidem")
+            Swal.fire({
+                title: "As senhas não coincidem!",
+                icon: "error",
+                draggable: true
+            });
             return
+        }
+        if (/\s/.test(formData.username)) {
+            Swal.fire({
+                title: "O username não pode conter espaços!",
+                icon: "error",
+                draggable: true
+            });
+            return;
         }
 
         setIsLoading(true)
@@ -40,10 +53,25 @@ export default function Register() {
                 username: formData.username,
                 password: formData.password,
             });
-            alert("Conta criada com sucesso!");
-            navigate("/dashboard");
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            Swal.fire({
+                title: "Conta criada com sucesso!",
+                icon: "success",
+                timer: 1700,
+                draggable: true
+            });
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            navigate("/login");
         } catch (error: any) {
-            alert("Erro ao criar conta: " + (error.response?.data || error.message));
+            await new Promise(resolve => setTimeout(resolve, 500));
+            Swal.fire({
+                title: error.response?.data,
+                icon: "error",
+                draggable: true
+            });
+
+            //alert("Erro ao criar conta: " + (error.response?.data || error.message));
         } finally {
             setIsLoading(false);
         }
@@ -127,6 +155,7 @@ export default function Register() {
                                 className="pl-10 pr-10"
                                 placeholder="••••••••"
                                 required
+                                maxLength={20}
                             />
                             <button
                                 type="button"
@@ -150,6 +179,7 @@ export default function Register() {
                                 className="pl-10 pr-10"
                                 placeholder="••••••••"
                                 required
+                                maxLength={20}
                             />
                             <button
                                 type="button"
