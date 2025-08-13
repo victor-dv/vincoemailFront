@@ -10,6 +10,7 @@ import { Card } from "../components/ui/Card"
 import logo from "../assets/logo.png"
 
 import { loginUser } from "../service/UseService"
+import Swal from "sweetalert2"
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -24,16 +25,22 @@ export default function Login() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simular chamada de API
     try {
-       await loginUser({
+      await loginUser({
         email: formData.email,
         password: formData.password
-       })
-       alert("Entrando no sistema")
-       navigate("/dashboard")
+      })
+  
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      navigate("/dashboard")
     } catch (error: any) {
-      alert("Erro ao entrar na conta: " + (error.response?.data || error.message))
+      await new Promise(resolve => setTimeout(resolve, 500));
+      Swal.fire({
+        title: error.response?.data,
+        icon: "error",
+        draggable: true
+      });
+      //alert("Erro ao entrar na conta: " + (error.response?.data || error.message))
     } finally {
       setIsLoading(false)
     }
