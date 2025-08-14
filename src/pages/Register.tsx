@@ -10,7 +10,7 @@ import { Card } from "../components/ui/Card"
 import logo from "../assets/logo.png"
 import Swal from "sweetalert2"
 
-import { registerUser } from "../service/UseService"
+import { registerUser } from "../service/UserService"
 
 export default function Register() {
     const [formData, setFormData] = useState({

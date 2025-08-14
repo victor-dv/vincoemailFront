@@ -11,6 +11,7 @@ import { Select } from "../components/ui/Select"
 import { Textarea } from "../components/ui/Textarea"
 import { Plus, Search, Eye, Edit, Copy, Trash2, Mail } from "lucide-react"
 import Swal from "sweetalert2"
+import { createTemplate } from "../service/TempateService"
 
 export const Templates: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("")
@@ -217,11 +218,34 @@ export const Templates: React.FC = () => {
     }))
   }
 
-  const handleCreateTemplate = () => {
-    console.log("Criando template:", formData)
-    // Aqui você faria a chamada para a API
-    handleCloseModal()
+ 
+const handleCreateTemplate = async () => {
+  try {
+    // Chama a API
+    const newTemplate = await createTemplate({
+      name: formData.name,
+      description: formData.description,
+      category: formData.category,
+      subject: formData.subject, // aqui é "assunto" no backend
+      html: formData.content     // aqui é "html" no backend
+    });
+
+    Swal.fire({
+      icon: "success",
+      title: "Template criado!",
+      text: `O template "${newTemplate.name}" foi criado com sucesso.`
+    });
+
+    handleCloseModal();
+    // Opcional: atualizar a lista de templates na tela
+  } catch (error: any) {
+    Swal.fire({
+      icon: "error",
+      title: "Erro",
+      text: error.response?.data?.message || "Não foi possível criar o template"
+    });
   }
+}
 
   const handleViewTemplate = (template: any) => {
     setSelectedTemplate(template)

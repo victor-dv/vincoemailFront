@@ -9,7 +9,7 @@ import { Input } from "../components/ui/Input"
 import { Card } from "../components/ui/Card"
 import logo from "../assets/logo.png"
 
-import { loginUser } from "../service/UseService"
+import { loginUser } from "../service/UserService"
 import Swal from "sweetalert2"
 
 export default function Login() {

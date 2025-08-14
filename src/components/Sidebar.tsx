@@ -1,7 +1,12 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
 import { Home, Mail, FileText, Settings, Users, X } from 'lucide-react'
+import * as jwt_decode from "jwt-decode"
 import img from '../assets/logo.png'
+
+interface JwtPayload  {
+  name: string
+}
 
 interface SidebarProps {
   isOpen: boolean
@@ -17,13 +22,20 @@ const menuItems = [
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
-  const informationAccount = [{
-    id: 1,
-    firstName: "João",
-    email: "joao@123.com.br",
-  }]
+ const [user, setUser] = React.useState<{name: string, email: string} | null>(null);
 
-  const user = informationAccount[0]
+const token = localStorage.getItem("jwtToken");
+
+let decoded: JwtPayload | null = null;
+
+if (token) {
+  try {
+    decoded = jwt_decode.jwtDecode<JwtPayload>(token); // aqui você consegue ler name e email
+    console.log(decoded.name);
+  } catch (error) {
+    console.error("Token inválido:", error);
+  }
+}
 
   return (
     <>
@@ -88,8 +100,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <div className="flex items-center gap-3 px-3 py-2">
             <Users className="h-4 w-4 text-gray-500" />
             <div className="flex flex-col">
-              <span className="text-sm font-medium text-gray-900">{user.firstName}</span>
-              <span className="text-xs text-gray-600" >{user.email}</span>
+              <span className="text-sm font-medium text-gray-900">{user?.name || "Usuario"}</span>
+              <span className="text-xs text-gray-600" >{user?.email || ""}</span>
             </div>
           </div>
         </div>
