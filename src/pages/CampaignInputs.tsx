@@ -1,98 +1,188 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom"
+import * as XLSX from "xlsx"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/Card"
 import { Button } from "../components/ui/Button"
 import { Input } from "../components/ui/Input"
-import { Select } from "../components/ui/Select"
-import { FileUpload } from "../components/ui/FileUpload"
-import { Badge } from "../components/ui/Badge"
-import { ArrowLeft, Plus, Trash2, Download, Upload } from "lucide-react"
+import { ArrowLeft, Upload, FileSpreadsheet, Send, AlertCircle, CheckCircle } from "lucide-react"
 
-interface CustomField {
-  id: string
-  name: string
-  type: "text" | "email" | "number" | "date" | "select"
-  required: boolean
-  options?: string[]
+interface ImportedData {
+  [key: string]: any
+}
+
+interface ImportState {
+  data: ImportedData[]
+  columns: string[]
+  fileName: string
+  isLoading: boolean
+  error: string | null
+  success: string | null
 }
 
 export const CampaignInputs: React.FC = () => {
   const { campaignId } = useParams()
   const navigate = useNavigate()
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [inputMethod, setInputMethod] = useState<"manual" | "file">("manual")
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [customFields, setCustomFields] = useState<CustomField[]>([
-    { id: "1", name: "Nome", type: "text", required: true },
-    { id: "2", name: "Email", type: "email", required: true },
-  ])
-
-  const [fieldValues, setFieldValues] = useState<Record<string, string>>({})
-
-  const [newField, setNewField] = useState({
-    name: "",
-    type: "text" as const,
-    required: false,
-    options: [] as string[],
+  const [importState, setImportState] = useState<ImportState>({
+    data: [],
+    columns: [],
+    fileName: "",
+    isLoading: false,
+    error: null,
+    success: null,
   })
 
-  const fieldTypes = [
-    { value: "text", label: "Texto" },
-    { value: "email", label: "Email" },
-    { value: "number", label: "Número" },
-    { value: "date", label: "Data" },
-    { value: "select", label: "Seleção" },
-  ]
+  const [editingCell, setEditingCell] = useState<{ row: number; column: string } | null>(null)
+  const [editingValue, setEditingValue] = useState("")
+  const [isSending, setIsSending] = useState(false)
 
-  const handleAddField = () => {
-    if (newField.name.trim()) {
-      const field: CustomField = {
-        id: Date.now().toString(),
-        name: newField.name,
-        type: newField.type,
-        required: newField.required,
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setImportState((prev) => ({ ...prev, isLoading: true, error: null, success: null }))
+
+    try {
+      const arrayBuffer = await file.arrayBuffer()
+      const workbook = XLSX.read(arrayBuffer, { type: "array" })
+
+      // Pegar primeira aba
+      const firstSheetName = workbook.SheetNames[0]
+      const worksheet = workbook.Sheets[firstSheetName]
+
+      // Converter para JSON
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][]
+
+      if (jsonData.length === 0) {
+        throw new Error("Arquivo vazio ou sem dados válidos")
       }
 
-      setCustomFields([...customFields, field])
-      setNewField({ name: "", type: "text", required: false, options: [] })
+      // Primeira linha como cabeçalho
+      const headers = jsonData[0].map((header: any) => String(header).trim()).filter(Boolean)
+
+      if (headers.length === 0) {
+        throw new Error("Nenhum cabeçalho válido encontrado")
+      }
+
+      // Converter linhas de dados
+      const dataRows = jsonData
+        .slice(1)
+        .filter((row) => row.some((cell) => cell !== undefined && cell !== null && String(cell).trim() !== ""))
+        .map((row, index) => {
+          const rowData: ImportedData = { _id: index }
+          headers.forEach((header, colIndex) => {
+            rowData[header] = row[colIndex] !== undefined ? String(row[colIndex]).trim() : ""
+          })
+          return rowData
+        })
+
+      setImportState({
+        data: dataRows,
+        columns: headers,
+        fileName: file.name,
+        isLoading: false,
+        error: null,
+        success: `${dataRows.length} registros importados com sucesso!`,
+      })
+    } catch (error) {
+      console.error("[v0] Erro ao processar arquivo:", error)
+      setImportState((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: error instanceof Error ? error.message : "Erro ao processar arquivo",
+      }))
+    }
+
+    // Limpar input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
     }
   }
 
-  const handleRemoveField = (fieldId: string) => {
-    setCustomFields(customFields.filter((field) => field.id !== fieldId))
+  const startEditing = (row: number, column: string) => {
+    const currentValue = importState.data[row][column] || ""
+    setEditingCell({ row, column })
+    setEditingValue(String(currentValue))
   }
 
-  const handleFileSelect = (file: File) => {
-    setSelectedFile(file)
-    // Aqui você processaria o arquivo XLSX
-    console.log("Arquivo selecionado:", file)
-  }
+  const saveEdit = () => {
+    if (!editingCell) return
 
-  const handleFileRemove = () => {
-    setSelectedFile(null)
-  }
-
-  const handleProcessFile = () => {
-    if (selectedFile) {
-      // Aqui você processaria o arquivo XLSX e extrairia os dados
-      console.log("Processando arquivo:", selectedFile.name)
-      // Implementar lógica de processamento do XLSX
-    }
-  }
-
-  const downloadTemplate = () => {
-    // Gerar e baixar template XLSX baseado nos campos customizados
-    console.log("Baixando template com campos:", customFields)
-  }
-
-  const handleFieldValueChange = (fieldId: string, value: string) => {
-    setFieldValues((prev) => ({
+    setImportState((prev) => ({
       ...prev,
-      [fieldId]: value,
+      data: prev.data.map((row, index) =>
+        index === editingCell.row ? { ...row, [editingCell.column]: editingValue } : row,
+      ),
     }))
+
+    setEditingCell(null)
+    setEditingValue("")
+  }
+
+  const cancelEdit = () => {
+    setEditingCell(null)
+    setEditingValue("")
+  }
+
+  const handleSendData = async () => {
+    if (importState.data.length === 0) return
+
+    setIsSending(true)
+    setImportState((prev) => ({ ...prev, error: null, success: null }))
+
+    try {
+      const response = await fetch("/api/importar-clientes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          campaignId,
+          fileName: importState.fileName,
+          columns: importState.columns,
+          data: importState.data.map((row) => {
+            const { _id, ...cleanRow } = row
+            return cleanRow
+          }),
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`)
+      }
+
+      const result = await response.json()
+
+      setImportState((prev) => ({
+        ...prev,
+        success: `Dados enviados com sucesso! ${result.message || ""}`,
+      }))
+    } catch (error) {
+      console.error("[v0] Erro ao enviar dados:", error)
+      setImportState((prev) => ({
+        ...prev,
+        error: error instanceof Error ? error.message : "Erro ao enviar dados para o servidor",
+      }))
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  const clearData = () => {
+    setImportState({
+      data: [],
+      columns: [],
+      fileName: "",
+      isLoading: false,
+      error: null,
+      success: null,
+    })
+    setEditingCell(null)
+    setEditingValue("")
   }
 
   return (
@@ -100,177 +190,175 @@ export const CampaignInputs: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" onClick={() => navigate("/campaigns")} className="p-2">
+          <Button variant="ghost" onClick={() => navigate("/dashboard/campaigns")} className="p-2">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-              Configurar Inputs - Campanha #{campaignId}
+              Importar Clientes - Campanha {campaignId}
             </h1>
-            <p className="text-gray-600">Configure os campos de entrada para esta campanha</p>
+            <p className="text-gray-600">Importe dados de planilhas Excel (.xlsx) e edite antes de enviar</p>
           </div>
         </div>
       </div>
 
-      {/* Método de Input */}
-      <Card>
+      {/* Upload Section */}
+      <Card className="bg-yellow-50 border-yellow-200">
         <CardHeader>
-          <CardTitle>Método de Entrada de Dados</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex space-x-4">
-            <Button
-              variant={inputMethod === "manual" ? "default" : "outline"}
-              onClick={() => setInputMethod("manual")}
-              className="flex-1"
-            >
-              Entrada Manual
-            </Button>
-            <Button
-              variant={inputMethod === "file" ? "default" : "outline"}
-              onClick={() => setInputMethod("file")}
-              className="flex-1"
-            >
-              Upload de Arquivo
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Configuração de Campos Customizados */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Campos Personalizados</CardTitle>
+          <CardTitle className="text-yellow-700 flex items-center">
+            <FileSpreadsheet className="mr-2 h-5 w-5" />
+            Importar Arquivo Excel
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Lista de campos existentes */}
-          <div className="space-y-2">
-            {customFields.map((field) => (
-              <div key={field.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <span className="font-medium">{field.name}</span>
-                  <Badge variant="outline">{fieldTypes.find((t) => t.value === field.type)?.label}</Badge>
-                  {field.required && <Badge className="bg-yellow-600 text-white">Obrigatório</Badge>}
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemoveField(field.id)}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
+          <div className="text-sm text-yellow-800">
+            <p>
+              <strong>Instruções:</strong>
+            </p>
+            <ul className="list-disc list-inside mt-2 space-y-1">
+              <li>Selecione um arquivo Excel (.xlsx)</li>
+              <li>A primeira linha será usada como cabeçalho das colunas</li>
+              <li>Dados serão carregados da primeira aba da planilha</li>
+              <li>Você pode editar os dados antes de enviar</li>
+            </ul>
           </div>
 
-          {/* Adicionar novo campo */}
-          <div className="border-t pt-4 space-y-3">
-            <h4 className="font-medium text-gray-900">Adicionar Novo Campo</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Input
-                placeholder="Nome do campo"
-                value={newField.name}
-                onChange={(e) => setNewField({ ...newField, name: e.target.value })}
-              />
-              <Select
-                options={fieldTypes}
-                value={newField.type}
-                onChange={(value) => setNewField({ ...newField, type: value as any })}
-                placeholder="Tipo do campo"
-              />
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="required"
-                  checked={newField.required}
-                  onChange={(e) => setNewField({ ...newField, required: e.target.checked })}
-                  className="rounded border-gray-300"
-                />
-                <label htmlFor="required" className="text-sm text-gray-700">
-                  Obrigatório
-                </label>
-              </div>
-            </div>
-            <Button onClick={handleAddField} disabled={!newField.name.trim()}>
-              <Plus className="mr-2 h-4 w-4" />
-              Adicionar Campo
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importState.isLoading}
+              className="bg-yellow-600 hover:bg-yellow-700"
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              {importState.isLoading ? "Processando..." : "Selecionar Arquivo"}
             </Button>
+
+            {importState.fileName && (
+              <div className="flex items-center text-sm text-gray-600">
+                <FileSpreadsheet className="mr-1 h-4 w-4" />
+                {importState.fileName}
+              </div>
+            )}
+
+            {importState.data.length > 0 && (
+              <Button
+                variant="outline"
+                onClick={clearData}
+                className="text-red-600 border-red-300 hover:bg-red-50 bg-transparent"
+              >
+                Limpar Dados
+              </Button>
+            )}
           </div>
+
+          <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={handleFileUpload} className="hidden" />
         </CardContent>
       </Card>
 
-      {/* Upload de Arquivo */}
-      {inputMethod === "file" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Upload de Arquivo</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-gray-600">
-                Faça upload de um arquivo XLSX, XLS ou CSV com os dados dos destinatários
-              </p>
-              <Button variant="outline" onClick={downloadTemplate}>
-                <Download className="mr-2 h-4 w-4" />
-                Baixar Template
-              </Button>
+      {/* Status Messages */}
+      {importState.error && (
+        <Card className="border-red-300 bg-red-50">
+          <CardContent className="pt-4">
+            <div className="flex items-center text-red-700">
+              <AlertCircle className="mr-2 h-5 w-5" />
+              <span>{importState.error}</span>
             </div>
-
-            <FileUpload onFileSelect={handleFileSelect} onFileRemove={handleFileRemove} selectedFile={selectedFile} />
-
-            {selectedFile && (
-              <div className="flex justify-end">
-                <Button onClick={handleProcessFile}>
-                  <Upload className="mr-2 h-4 w-4" />
-                  Processar Arquivo
-                </Button>
-              </div>
-            )}
           </CardContent>
         </Card>
       )}
 
-      {/* Entrada Manual */}
-      {inputMethod === "manual" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Entrada Manual de Dados</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {customFields.map((field) => (
-                <div key={field.id}>
-                  {field.type === "select" ? (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {field.name}
-                        {field.required && <span className="text-red-500 ml-1">*</span>}
-                      </label>
-                      <Select
-                        options={field.options?.map((opt) => ({ value: opt, label: opt })) || []}
-                        value={fieldValues[field.id] || ""}
-                        onChange={(value) => handleFieldValueChange(field.id, value)}
-                        placeholder={`Selecione ${field.name}`}
-                      />
-                    </div>
-                  ) : (
-                    <Input
-                      type={field.type}
-                      placeholder={field.name}
-                      label={field.name}
-                      required={field.required}
-                      value={fieldValues[field.id] || ""}
-                      onChange={(e) => handleFieldValueChange(field.id, e.target.value)}
-                    />
-                  )}
-                </div>
-              ))}
+      {importState.success && (
+        <Card className="border-green-300 bg-green-50">
+          <CardContent className="pt-4">
+            <div className="flex items-center text-green-700">
+              <CheckCircle className="mr-2 h-5 w-5" />
+              <span>{importState.success}</span>
             </div>
+          </CardContent>
+        </Card>
+      )}
 
-            <div className="flex justify-end mt-6">
-              <Button>Salvar Dados</Button>
+      {/* Data Table */}
+      {importState.data.length > 0 && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-gray-900">Dados Importados ({importState.data.length} registros)</CardTitle>
+            <Button
+              onClick={handleSendData}
+              disabled={isSending || importState.data.length === 0}
+              className="bg-yellow-600 hover:bg-yellow-700"
+            >
+              <Send className="mr-2 h-4 w-4" />
+              {isSending ? "Enviando..." : "Enviar Dados"}
+            </Button>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-auto max-h-96 border rounded-lg">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 sticky top-0">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-medium text-gray-700 border-b w-16">#</th>
+                    {importState.columns.map((column) => (
+                      <th key={column} className="px-4 py-3 text-left font-medium text-gray-700 border-b min-w-32">
+                        {column}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {importState.data.map((row, rowIndex) => (
+                    <tr key={rowIndex} className="border-b hover:bg-gray-50">
+                      <td className="px-4 py-2 text-gray-500 font-mono text-xs">{rowIndex + 1}</td>
+                      {importState.columns.map((column) => {
+                        const isEditing = editingCell?.row === rowIndex && editingCell?.column === column
+                        const value = row[column] || ""
+
+                        return (
+                          <td key={column} className="px-4 py-2">
+                            {isEditing ? (
+                              <Input
+                                value={editingValue}
+                                onChange={(e) => setEditingValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") saveEdit()
+                                  if (e.key === "Escape") cancelEdit()
+                                }}
+                                onBlur={saveEdit}
+                                className="h-8 text-sm"
+                                autoFocus
+                              />
+                            ) : (
+                              <div
+                                className="cursor-pointer hover:bg-yellow-50 p-1 rounded min-h-6 flex items-center"
+                                onClick={() => startEditing(rowIndex, column)}
+                                title="Clique para editar"
+                              >
+                                {value || <span className="text-gray-400 italic text-xs">Clique para editar</span>}
+                              </div>
+                            )}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Empty State */}
+      {importState.data.length === 0 && !importState.isLoading && (
+        <Card className="text-center py-12">
+          <CardContent>
+            <FileSpreadsheet className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum arquivo importado</h3>
+            <p className="text-gray-600 mb-4">Selecione um arquivo Excel para começar a importação de clientes</p>
+            <Button onClick={() => fileInputRef.current?.click()} className="bg-yellow-600 hover:bg-yellow-700">
+              <Upload className="mr-2 h-4 w-4" />
+              Selecionar Arquivo Excel
+            </Button>
           </CardContent>
         </Card>
       )}

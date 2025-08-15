@@ -123,7 +123,7 @@ export const Campaigns: React.FC = () => {
           <CardDescription>Lista completa das suas campanhas de email</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table >
             <TableHeader>
               <TableRow>
                 <TableHead>Nome da Campanha</TableHead>
