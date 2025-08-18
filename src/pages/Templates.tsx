@@ -10,10 +10,14 @@ import { Select } from "../components/ui/Select";
 import { Textarea } from "../components/ui/Textarea";
 import { Plus, Search, Eye, Edit, Trash2, Mail } from "lucide-react";
 import Swal from "sweetalert2";
-import { createTemplate, getAllTemplates } from "../service/TempateService";
+import { createTemplate, getAllTemplates, deleteTemplates, updateTemplates } from "../service/TempateService";
+import CodeMirror from "@uiw/react-codemirror";
+import { html } from "@codemirror/lang-html";
 
 export const Templates: React.FC = () => {
   // Variáveis de estado
+  const [isEditing, setIsEditing] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -27,7 +31,7 @@ export const Templates: React.FC = () => {
     subject: "",
     html: "",
   });
-  
+
 
   const categoryOptions = [
     { value: "Newsletter", label: "Newsletter" },
@@ -78,9 +82,23 @@ export const Templates: React.FC = () => {
 
   // Funções de modais
   const handleOpenModal = () => setIsModalOpen(true);
+  const handleOpenEditModal = (template: any) => {
+    setFormData({
+      name: template.name,
+      description: template.description,
+      category: template.category,
+      subject: template.subject,
+      html: template.html,
+    });
+    setEditId(template.id);
+    setIsEditing(true);
+    setIsModalOpen(true);
+  };
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setFormData({ name: "", description: "", category: "", subject: "", html: "" });
+    setIsEditing(false);
+    setEditId(null);
   };
 
   const handleOpenViewModal = (template: any) => {
@@ -134,6 +152,33 @@ export const Templates: React.FC = () => {
     }
   };
 
+  //Modal de editar
+  const handleUpdateTemplate = async () => {
+    if (!editId) return
+    try {
+      const updated = await updateTemplates(editId, formData)
+
+      Swal.fire({
+        icon: "success",
+        title: "Atualizado!",
+        text: `O template "${updated.name}" foi atualizado com sucesso.`,
+      })
+
+      handleCloseModal()
+
+      // Atualizar lista
+      const data = await getAllTemplates()
+      setTemplates(data)
+    } catch (error: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Erro",
+        text: error.response?.data?.message || "Não foi possível atualizar o template",
+      })
+    }
+  }
+
+
   if (loading) {
     return <p>Carregando templates...</p>;
   }
@@ -182,16 +227,17 @@ export const Templates: React.FC = () => {
               <CardDescription className="text-sm">{template.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                <span>Usado {template.usageCount || 0} vezes</span>
-                <span>Última vez: {template.lastUsed ? new Date(template.lastUsed).toLocaleDateString("pt-BR") : "-"}</span>
-              </div>
+
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" className="flex-1 bg-transparent" onClick={() => handleOpenViewModal(template)}>
                   <Eye className="mr-2 h-4 w-4" />
                   Visualizar
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleOpenEditModal(template)}
+                >
                   <Edit className="h-4 w-4" />
                 </Button>
                 <Button
@@ -204,13 +250,26 @@ export const Templates: React.FC = () => {
                       confirmButtonColor: "#3085d6",
                       cancelButtonColor: "#d33",
                       confirmButtonText: "Deletar!",
-                    }).then((result) => {
+                    }).then(async (result) => {
                       if (result.isConfirmed) {
-                        Swal.fire({
-                          title: "Deletado!",
-                          text: "Seu modelo foi excluído.",
-                          icon: "success",
-                        });
+
+                        try {
+                          await deleteTemplates(template.id)
+                          Swal.fire({
+                            title: "Deletado!",
+                            text: "Seu modelo foi excluído.",
+                            icon: "success",
+                          });
+
+                          const data = await getAllTemplates()
+                          setTemplates(data)
+                        } catch (error: any) {
+                          Swal.fire({
+                            icon: "error",
+                            title: "Erro",
+                            text: error.message
+                          })
+                        }
                       }
                     })
                   }
@@ -249,11 +308,27 @@ export const Templates: React.FC = () => {
           <Textarea label="Descrição" placeholder="Descreva o propósito deste template..." value={formData.description} onChange={(e) => handleInputChange("description", e.target.value)} rows={3} />
           <Select placeholder="Selecione uma categoria" value={formData.category} onChange={(value) => handleInputChange("category", value)} options={categoryOptions} />
           <Input label="Assunto do E-mail" placeholder="Ex: Newsletter Semanal - Novidades da Semana" value={formData.subject} onChange={(e) => handleInputChange("subject", e.target.value)} />
-          <Textarea label="Conteúdo HTML" placeholder="Cole aqui o código HTML do seu template..." value={formData.html} onChange={(e) => handleInputChange("html", e.target.value)} rows={8} className="font-mono text-sm" />
-        </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Conteúdo HTML
+            </label>
+            <CodeMirror
+              value={formData.html}
+              height="300px"
+              extensions={[html()]}
+              onChange={(value) => handleInputChange("html", value)}
+              className="rounded-lg border border-gray-300"
+            />
+          </div>        </div>
         <div className="flex justify-end space-x-3 mt-6">
           <Button variant="outline" onClick={handleCloseModal}>Cancelar</Button>
-          <Button onClick={handleCreateTemplate} disabled={!isFormValid} className="bg-yellow-600 hover:bg-yellow-700 text-white">Criar Template</Button>
+          <Button
+            onClick={isEditing ? handleUpdateTemplate : handleCreateTemplate}
+            disabled={!isFormValid}
+            className="bg-yellow-600 hover:bg-yellow-700 text-white"
+          >
+            {isEditing ? "Salvar Alterações" : "Criar Template"}
+          </Button>
         </div>
       </Modal>
 
@@ -300,7 +375,13 @@ export const Templates: React.FC = () => {
         )}
         <div className="flex justify-end space-x-3 mt-6">
           <Button variant="outline" onClick={handleCloseViewModal}>Fechar</Button>
-          <Button className="bg-yellow-600 hover:bg-yellow-700 text-white">
+          <Button
+            className="bg-yellow-600 hover:bg-yellow-700 text-white"
+            onClick={() => {
+              handleCloseViewModal();
+              handleOpenEditModal(selectedTemplate);
+            }}
+          >
             <Edit className="mr-2 h-4 w-4" />
             Editar Template
           </Button>
