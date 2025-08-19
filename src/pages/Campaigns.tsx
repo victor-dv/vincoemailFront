@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/Card"
+import { Card, CardContent } from "../components/ui/Card"
 import { Badge } from "../components/ui/Badge"
 import { Button } from "../components/ui/Button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/Table"
@@ -13,74 +13,44 @@ import { Modal } from "../components/ui/Modal"
 import { Input } from "../components/ui/Input"
 import { Textarea } from "../components/ui/Textarea"
 import { Select } from "../components/ui/Select"
+import { getCampaigns, getTemplates, createCampaign, Campaign, Template } from "../service/CampaignService"
 
 export const Campaigns: React.FC = () => {
   const navigate = useNavigate()
 
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [campaigns, setCampaigns] = useState<Campaign[]>([])
+  const [templates, setTemplates] = useState<Template[]>([])
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    template: "",
+    templateId: "",
   })
 
-  const emailTemplates = [
-    { value: "newsletter", label: "Newsletter Padrão" },
-    { value: "promotional", label: "Promocional" },
-    { value: "welcome", label: "Boas-vindas" },
-    { value: "announcement", label: "Anúncio" },
-    { value: "event", label: "Evento" },
-  ]
-
-  const campaigns = [
-    {
-      id: 1,
-      name: "Promoção Black Friday 2024",
-      status: "active",
-      template: "Promocional",
-      sent: 2500,
-      opens: 612,
-      clicks: 89,
-      createdAt: "2024-01-15",
-    },
-    {
-      id: 2,
-      name: "Newsletter Semanal #45",
-      status: "completed",
-      template: "Newsletter",
-      sent: 1800,
-      opens: 441,
-      clicks: 67,
-      createdAt: "2024-01-12",
-    },
-    {
-      id: 3,
-      name: "Lançamento Produto X",
-      status: "scheduled",
-      template: "Lançamento",
-      sent: 0,
-      opens: 0,
-      clicks: 0,
-      createdAt: "2024-01-10",
-    },
-  ]
+  useEffect(() => {
+    getCampaigns().then(setCampaigns)
+    getTemplates().then(setTemplates)
+  }, [])
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
+    setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleCreateCampaign = () => {
-    console.log("Nova campanha:", formData)
-    setFormData({ name: "", description: "", template: "" })
-    setIsModalOpen(false)
+  const handleCreateCampaign = async () => {
+    try {
+      const newCampaign = await createCampaign(formData)
+      setCampaigns((prev) => [...prev, newCampaign]) // atualiza a lista sem precisar reload
+      Swal.fire("Sucesso!", "Campanha criada com sucesso!", "success")
+      setFormData({ name: "", description: "", templateId: "" })
+      setIsModalOpen(false)
+    } catch (err) {
+      Swal.fire("Erro!", "Não foi possível criar a campanha", "error")
+    }
   }
 
   const handleCloseModal = () => {
     setIsModalOpen(false)
-    setFormData({ name: "", description: "", template: "" })
+    setFormData({ name: "", description: "", templateId: "" })
   }
 
   const getStatusBadge = (status: string) => {
@@ -98,7 +68,7 @@ export const Campaigns: React.FC = () => {
     }
   }
 
-  const handleConfigureInputs = (campaignId: number) => {
+  const handleConfigureInputs = (campaignId: string) => {
     navigate(`/campaigns/${campaignId}/inputs`)
   }
 
@@ -118,36 +88,24 @@ export const Campaigns: React.FC = () => {
 
       {/* Lista de campanhas */}
       <Card>
-        
         <CardContent>
-          <Table >
+          <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nome da Campanha</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>Template</TableHead>
-                <TableHead className="text-right">Enviados</TableHead>
-                <TableHead className="text-right">Aberturas</TableHead>
-                <TableHead className="text-right">Cliques</TableHead>
+                <TableHead>Criada em</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {campaigns.map((campaign) => (
                 <TableRow key={campaign.id}>
-                  <TableCell className="font-medium">
-                    <div>
-                      <div>{campaign.name}</div>
-                      <div className="text-sm text-gray-600">
-                        Criada em {new Date(campaign.createdAt).toLocaleDateString("pt-BR")}
-                      </div>
-                    </div>
+                  <TableCell className="font-medium">{campaign.name}</TableCell>
+                  <TableCell>{campaign.template?.name}</TableCell>
+                  <TableCell>
+                    {new Date(campaign.createdAt).toLocaleDateString("pt-BR")}
                   </TableCell>
-                  <TableCell>{getStatusBadge(campaign.status)}</TableCell>
-                  <TableCell>{campaign.template}</TableCell>
-                  <TableCell className="text-right">{campaign.sent.toLocaleString()}</TableCell>
-                  <TableCell className="text-right">{campaign.opens.toLocaleString()}</TableCell>
-                  <TableCell className="text-right">{campaign.clicks.toLocaleString()}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex gap-1 justify-end">
                       <Button
@@ -173,11 +131,7 @@ export const Campaigns: React.FC = () => {
                             confirmButtonText: "Deletar!",
                           }).then((result) => {
                             if (result.isConfirmed) {
-                              Swal.fire({
-                                title: "Deletado!",
-                                text: "Sua campanha foi excluída.",
-                                icon: "success",
-                              })
+                              Swal.fire("Deletado!", "Sua campanha foi excluída.", "success")
                             }
                           })
                         }
@@ -216,9 +170,9 @@ export const Campaigns: React.FC = () => {
           <div className="space-y-1">
             <label className="block text-sm font-medium text-gray-700">Modelo de Email</label>
             <Select
-              options={emailTemplates}
-              value={formData.template}
-              onChange={(value) => handleInputChange("template", value)}
+              options={templates.map((t) => ({ value: t.id.toString(), label: t.name }))}
+              value={formData.templateId}
+              onChange={(value) => handleInputChange("templateId", value)}
               placeholder="Selecione um modelo"
             />
           </div>
@@ -227,7 +181,11 @@ export const Campaigns: React.FC = () => {
             <Button variant="outline" onClick={handleCloseModal} className="flex-1 bg-transparent">
               Cancelar
             </Button>
-            <Button onClick={handleCreateCampaign} className="flex-1" disabled={!formData.name || !formData.template}>
+            <Button
+              onClick={handleCreateCampaign}
+              className="flex-1"
+              disabled={!formData.name || !formData.templateId}
+            >
               Criar
             </Button>
           </div>
