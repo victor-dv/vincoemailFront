@@ -33,7 +33,7 @@ interface CardContentProps {
 
 export const CardContent: React.FC<CardContentProps> = ({ children, className = '' }) => {
   return (
-    <div className={`p-6 pt-0 ${className}`}>
+    <div className={`p-6 pt-6 ${className}`}>
       {children}
     </div>
   )

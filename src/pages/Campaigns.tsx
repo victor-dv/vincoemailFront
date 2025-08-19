@@ -118,10 +118,7 @@ export const Campaigns: React.FC = () => {
 
       {/* Lista de campanhas */}
       <Card>
-        <CardHeader>
-          <CardTitle>Campanhas</CardTitle>
-          <CardDescription>Lista completa das suas campanhas de email</CardDescription>
-        </CardHeader>
+        
         <CardContent>
           <Table >
             <TableHeader>
