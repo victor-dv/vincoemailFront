@@ -1,11 +1,44 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { User } from 'lucide-react';
+import { Eye, EyeOff, User } from 'lucide-react';
 import swal from 'sweetalert';
+import { registerUser } from '../service/UserService';
+import { Select } from '../components/ui/Select';
 
 export const Settings: React.FC = () => {
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+
+  const [name, setName] = useState("")
+  const [username, setUsername] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [role, setRole] = useState("")
+
+  const handleCreateUser = async () => {
+    if (password !== confirmPassword) {
+      swal({ icon: "error", title: "As senhas não coincidem!" })
+      return
+    }
+    try {
+      await registerUser({ name, username, email, password, role })
+      swal({ icon: "success", title: "Usuário criado com sucesso!" })
+      setName("")
+      setUsername("")
+      setEmail("")
+      setPassword("")
+      setConfirmPassword("")
+      setRole("")
+    } catch (err: any) {
+      swal({
+        icon: "error",
+        title: "Erro ao criar usuário",
+        text: err.response?.data?.message || "Tente novamente mais tarde",
+      })
+    }
+  }
 
   const informationAccount = [{
     id: 1,
@@ -80,26 +113,69 @@ export const Settings: React.FC = () => {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Nome</label>
-                <Input placeholder="Seu nome" defaultValue={user.firstName} />
+                <Input placeholder="Digite o nome" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Username</label>
-                <Input placeholder="Seu sobrenome" defaultValue={user.lastName} />
+                <Input placeholder="Digite o username" value={username} onChange={(e) => setUsername(e.target.value)} />
               </div>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">E-mail</label>
-              <Input type="email" placeholder="seu@email.com" defaultValue={user.email} />
+              <Input type="email" placeholder="Digite o e-mail" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Senha</label>
-              <Input type="email" placeholder="seu@email.com" defaultValue={user.senha} />
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Digite a senha"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
             </div>
 
-            <Button onClick={() => swal({
-              icon: "success",
-              title: "Alterações realizadas com sucesso!"
-            })}>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Confirmar Senha</label>
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Confirme a senha"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Role</label>
+              <Select
+                options={[
+                  { value: "ADMIN", label: "Administrador" },
+                  { value: "USER", label: "Usuário" },
+                ]}
+                value={role}
+                onChange={(value) => setRole(value)}
+                placeholder="Selecione o tipo de usuário"
+              />
+            </div>
+
+
+            <Button onClick={handleCreateUser}>
               Criar conta
             </Button>
           </CardContent>

@@ -6,7 +6,6 @@ import { Templates } from "./pages/Templates"
 import { Settings } from "./pages/Settings"
 import { CampaignInputs } from "./pages/CampaignInputs"
 import Login from "./pages/Login"
-import Register from "./pages/Register"
 
 function App() {
   return (
@@ -15,7 +14,6 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
 
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
 
         {/* Rotas protegidas dentro do Layout */}
         <Route path="/" element={<Layout />}>
