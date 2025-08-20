@@ -82,10 +82,7 @@ export const Settings: React.FC = () => {
                 <Input placeholder="Seu sobrenome" defaultValue={user.lastName} />
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">E-mail</label>
-              <Input type="email" placeholder="seu@email.com" defaultValue={user.email} />
-            </div>
+
 
             <Button onClick={() => swal({
               icon: "success",

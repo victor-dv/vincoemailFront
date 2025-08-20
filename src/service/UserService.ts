@@ -13,6 +13,10 @@ interface LoginUseData {
      password: string
 }
 
+interface UpdateUseData {
+    name: string
+    username : string
+}
 
 const URL_API = "http://localhost:8080"
 
@@ -25,5 +29,10 @@ export const loginUser = async (userData: LoginUseData) => {
     const response = await axios.post(URL_API + "/user/login", userData)
     const {access_token} = response.data
     sessionStorage.setItem("jwtToken", access_token)
+    return response.data
+}
+
+export const updateUser = async ( userData: UpdateUseData) => {
+    const response = await api.put (URL_API + "/user/", userData )
     return response.data
 }
