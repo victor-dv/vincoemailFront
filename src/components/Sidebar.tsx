@@ -1,16 +1,17 @@
-import React from 'react'
-import { NavLink } from 'react-router-dom'
-import { Home, Mail, FileText, Settings, Users, X } from 'lucide-react'
-import * as jwt_decode from "jwt-decode"
-import img from '../assets/logo.png'
+import React, { useEffect } from 'react';
+import { NavLink } from 'react-router-dom';
+import { Home, Mail, FileText, Settings, Users, X } from 'lucide-react';
+import { jwtDecode } from "jwt-decode";
+import img from '../assets/logo.png';
 
-interface JwtPayload  {
-  name: string
+interface JwtPayload {
+  name: string;
+  email: string; // Adicionado 'email' na interface para que ele seja decodificado
 }
 
 interface SidebarProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const menuItems = [
@@ -18,31 +19,30 @@ const menuItems = [
   { title: 'Campanhas', path: '/campaigns', icon: Mail },
   { title: 'Modelos', path: '/templates', icon: FileText },
   { title: 'Configurações', path: '/settings', icon: Settings },
-]
+];
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+  const [user, setUser] = React.useState<{ name: string; email: string } | null>(null);
 
- const [user, setUser] = React.useState<{name: string, email: string} | null>(null);
+  useEffect(() => {
+    const token = sessionStorage.getItem("jwtToken");
 
-const token = localStorage.getItem("jwtToken");
-
-let decoded: JwtPayload | null = null;
-
-if (token) {
-  try {
-    decoded = jwt_decode.jwtDecode<JwtPayload>(token); // aqui você consegue ler name e email
-    console.log(decoded.name);
-  } catch (error) {
-    console.error("Token inválido:", error);
-  }
-}
+    if (token) {
+      try {
+        const decoded = jwtDecode<JwtPayload>(token);
+        setUser({ name: decoded.name, email: decoded.email });
+      } catch (error) {
+        console.error("Token inválido:", error);
+      }
+    }
+  }, []); // O array vazio [] garante que o useEffect rode apenas uma vez, na montagem do componente.
 
   return (
     <>
       {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-white bg-opacity-50 z-40 lg:hidden"
           onClick={onClose}
         />
       )}
@@ -100,12 +100,12 @@ if (token) {
           <div className="flex items-center gap-3 px-3 py-2">
             <Users className="h-4 w-4 text-gray-500" />
             <div className="flex flex-col">
-              <span className="text-sm font-medium text-gray-900">{user?.name || "Usuario"}</span>
+              <span className="text-sm font-medium text-gray-900">{user?.name || "Usuário"}</span>
               <span className="text-xs text-gray-600" >{user?.email || ""}</span>
             </div>
           </div>
         </div>
       </div>
     </>
-  )
-}
+  );
+};

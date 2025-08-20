@@ -20,7 +20,7 @@ export const registerUser = async (userData:  RegisterUseData) => {
 
 export const loginUser = async (userData: LoginUseData) => {
     const response = await axios.post(URL_API + "/user/login", userData)
-    const {token} = response.data
-    localStorage.setItem("jwtToken", token)
+    const {access_token} = response.data
+    sessionStorage.setItem("jwtToken", access_token)
     return response.data
 }

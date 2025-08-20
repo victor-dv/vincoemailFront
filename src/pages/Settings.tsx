@@ -12,7 +12,7 @@ export const Settings: React.FC = () => {
     firstName: "João",
     lastName: "Souza",
     email: "joao@123.com.br",
-    empresa: "Vinco Leilões"
+    senha: "123456"
   }];
 
   const user = informationAccount[0]
@@ -45,7 +45,7 @@ export const Settings: React.FC = () => {
                 <Input placeholder="Seu nome" defaultValue={user.firstName} />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Sobrenome</label>
+                <label className="text-sm font-medium text-gray-700">Username</label>
                 <Input placeholder="Seu sobrenome" defaultValue={user.lastName} />
               </div>
             </div>
@@ -53,10 +53,7 @@ export const Settings: React.FC = () => {
               <label className="text-sm font-medium text-gray-700">E-mail</label>
               <Input type="email" placeholder="seu@email.com" defaultValue={user.email} />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Empresa</label>
-              <Input placeholder="Nome da empresa" defaultValue={user.empresa} />
-            </div>
+
             <Button onClick={() => swal({
               icon: "success",
               title: "Alterações realizadas com sucesso!"
@@ -66,6 +63,49 @@ export const Settings: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      <div className="grid gap-6">
+        {/* Informações da Conta */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5 text-yellow-600" />
+              Crie uma nova conta
+            </CardTitle>
+            <CardDescription>
+              Crie contas para os usuários da sua empres
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Nome</label>
+                <Input placeholder="Seu nome" defaultValue={user.firstName} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Username</label>
+                <Input placeholder="Seu sobrenome" defaultValue={user.lastName} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">E-mail</label>
+              <Input type="email" placeholder="seu@email.com" defaultValue={user.email} />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Senha</label>
+              <Input type="email" placeholder="seu@email.com" defaultValue={user.senha} />
+            </div>
+
+            <Button onClick={() => swal({
+              icon: "success",
+              title: "Alterações realizadas com sucesso!"
+            })}>
+              Criar conta
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
     </div>
   );
 };
