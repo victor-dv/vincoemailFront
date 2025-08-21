@@ -135,13 +135,14 @@ export const CampaignInputs: React.FC = () => {
     setImportState((prev) => ({ ...prev, error: null, success: null }))
 
     try {
-      const response = await fetch("/api/importar-clientes", {
+      const response = await fetch("http://localhost:8080/emails/send/batch", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           campaignId,
+          emails: importState.data.map(({ _id, ...row }) => row),
           fileName: importState.fileName,
           columns: importState.columns,
           data: importState.data.map((row) => {
@@ -170,6 +171,22 @@ export const CampaignInputs: React.FC = () => {
     } finally {
       setIsSending(false)
     }
+
+    const payload = {
+      campaignId,
+      emails: importState.data.map(({ _id, ...row }) => row),
+      fileName: importState.fileName,
+      columns: importState.columns,
+      data: importState.data.map((row) => {
+        const { _id, ...cleanRow } = row
+        return cleanRow
+      }),
+    };
+
+    console.log("Payload JSON:", payload);
+    console.log("JSON.stringify:", JSON.stringify(payload));
+
+
   }
 
   const clearData = () => {
@@ -364,4 +381,5 @@ export const CampaignInputs: React.FC = () => {
       )}
     </div>
   )
+
 }
