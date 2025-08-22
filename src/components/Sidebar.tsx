@@ -1,12 +1,15 @@
 import React, { useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { Home, Mail, FileText, Settings, Users, X } from 'lucide-react';
 import { jwtDecode } from "jwt-decode";
 import img from '../assets/logo.png';
 
+import exit from '../assets/exit.svg';
+import { Button } from './ui/Button';
+
 interface JwtPayload {
   name: string;
-  email: string; // Adicionado 'email' na interface para que ele seja decodificado
+  email: string;
 }
 
 interface SidebarProps {
@@ -22,6 +25,8 @@ const menuItems = [
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+  const navigate = useNavigate()
+
   const [user, setUser] = React.useState<{ name: string; email: string } | null>(null);
 
   useEffect(() => {
@@ -35,9 +40,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         console.error("Token inválido:", error);
       }
     }
-  }, []); // O array vazio [] garante que o useEffect rode apenas uma vez, na montagem do componente.
+  }, []); 
 
   return (
+
     <>
       {/* Mobile overlay */}
       {isOpen && (
@@ -97,12 +103,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         {/* Footer */}
         <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center gap-3 px-3 py-2">
+          <div className="flex items-center gap-5 px-3 py-2">
             <Users className="h-4 w-4 text-gray-500" />
             <div className="flex flex-col">
               <span className="text-sm font-medium text-gray-900">{user?.name || "Usuário"}</span>
               <span className="text-xs text-gray-600" >{user?.email || ""}</span>
             </div>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                sessionStorage.removeItem("jwtToken"); 
+                navigate("/login"); 
+              }}
+              className="p-2"
+            >
+              <img src={exit} alt="Sair" />
+            </Button>
           </div>
         </div>
       </div>

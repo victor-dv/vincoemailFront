@@ -43,7 +43,6 @@ export const Dashboard: React.FC = () => {
   const [stats, setStats] = useState({
     totalCampaigns: 0,
     totalSent: 0,
-    openRate: 0,
     clickRate: 0,
     activeCampaigns: 0,
     scheduledCampaigns: 0,
@@ -64,12 +63,10 @@ export const Dashboard: React.FC = () => {
 
         // Calcula os stats
         const totalSent = campaignsData.reduce((acc, c) => acc + (c.sent ?? 0), 0)
-        const totalOpens = campaignsData.reduce((acc, c) => acc + (c.opens ?? 0), 0)
         const totalClicks = campaignsData.reduce((acc, c) => acc + (c.clicks ?? 0), 0)
         setStats({
           totalCampaigns: campaignsData.length,
           totalSent,
-          openRate: totalSent > 0 ? (totalOpens / totalSent) * 100 : 0,
           clickRate: totalSent > 0 ? (totalClicks / totalSent) * 100 : 0,
           activeCampaigns: campaignsData.filter((c) => c.status === "active").length,
           scheduledCampaigns: campaignsData.filter((c) => c.status === "scheduled").length,

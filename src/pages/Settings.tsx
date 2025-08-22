@@ -41,11 +41,8 @@ export const Settings: React.FC = () => {
   }
 
   const informationAccount = [{
-    id: 1,
     firstName: "João",
     lastName: "Souza",
-    email: "joao@123.com.br",
-    senha: "123456"
   }];
 
   const user = informationAccount[0]
