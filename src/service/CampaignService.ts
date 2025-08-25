@@ -67,3 +67,9 @@ export const updateCampaign = async (
   const res = await axios.put(`${API_URL}/campaigns/${id}`, campaign)
   return res.data
 }
+
+export const getCampaignStats = async (id: string) => {
+  const res = await fetch(`/campaigns/${id}/`);
+  if (!res.ok) throw new Error("Erro ao buscar estatísticas da campanha");
+  return res.json();
+};

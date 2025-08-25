@@ -188,7 +188,7 @@ export const Templates: React.FC = () => {
       {/* Cabeçalho */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Modelos de E-mail</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">Modelos de E-mail</h1>
           <p className="text-gray-600">Crie e gerencie seus templates de email personalizados</p>
         </div>
         <Button onClick={handleOpenModal}>

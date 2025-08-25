@@ -61,7 +61,27 @@ export const Dashboard: React.FC = () => {
         const templatesData: Template[] = await templateRes.json()
         const statsData = await statsRes.json()
 
-        setCampaigns(campaignsData)
+        // Itera sobre cada campanha para buscar estatísticas detalhadas
+        const campaignsWithStats = await Promise.all(
+          campaignsData.map(async (campaign) => {
+            try {
+              const individualStatsRes = await fetch(`http://localhost:8080/campaigns/${campaign.id}/`)
+              if (!individualStatsRes.ok) throw new Error("Erro ao buscar estatísticas da campanha")
+              const individualStats = await individualStatsRes.json()
+              return {
+                ...campaign,
+                sent: individualStats.sent,
+                opens: individualStats.opens,
+                clicks: individualStats.clicks,
+              }
+            } catch (error) {
+              console.error(`Erro ao buscar estatísticas para a campanha ${campaign.id}:`, error)
+              return campaign // Retorna a campanha sem as estatísticas em caso de erro
+            }
+          })
+        )
+
+        setCampaigns(campaignsWithStats)
         setTemplates(templatesData)
 
         setStats({
@@ -117,7 +137,7 @@ export const Dashboard: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">Dashboard</h1>
           <p className="text-gray-600">Visão geral das suas campanhas de email</p>
         </div>
         <Button onClick={() => setIsModalOpen(true)}>

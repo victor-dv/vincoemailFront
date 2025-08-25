@@ -89,27 +89,27 @@ export const Settings: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Configurações</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">Configurações</h1>
         <p className="text-gray-600">
-          Gerencie suas preferências e configurações da conta
+          Gerencie conta e crie novos usuários
         </p>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid gap-6 ">
         {/* Informações da Conta */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2" >
               <User className="h-5 w-5 text-yellow-600" />
               Informações da Conta
             </CardTitle>
             <CardDescription>
-              Atualize suas informações pessoais e de contato
+              Atualize suas informações pessoais
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
+              <div className="">
                 <label className="text-sm font-medium text-gray-700">Nome</label>
                 <Input value={nameUser} onChange={(e) => setNameUser(e.target.value)} />
               </div>
@@ -134,7 +134,7 @@ export const Settings: React.FC = () => {
               Crie uma nova conta
             </CardTitle>
             <CardDescription>
-              Crie contas para os usuários da sua empres
+              Crie contas para os usuários da sua empresa
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

@@ -96,7 +96,7 @@ export const Campaigns: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Campanhas</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">Campanhas</h1>
           <p className="text-gray-600">Gerencie todas as suas campanhas de email marketing</p>
         </div>
         <Button onClick={handleOpenCreateModal}>
