@@ -52,22 +52,22 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [campaignRes, templateRes] = await Promise.all([
+        const [campaignRes, templateRes, statsRes] = await Promise.all([
           fetch("http://localhost:8080/campaigns/"),
-          fetch("http://localhost:8080/templates")
+          fetch("http://localhost:8080/templates"),
+          fetch("http://localhost:8080/emails/stats")
         ])
         const campaignsData: Campaign[] = await campaignRes.json()
         const templatesData: Template[] = await templateRes.json()
+        const statsData = await statsRes.json()
+
         setCampaigns(campaignsData)
         setTemplates(templatesData)
 
-        // Calcula os stats
-        const totalSent = campaignsData.reduce((acc, c) => acc + (c.sent ?? 0), 0)
-        const totalClicks = campaignsData.reduce((acc, c) => acc + (c.clicks ?? 0), 0)
         setStats({
           totalCampaigns: campaignsData.length,
-          totalSent,
-          clickRate: totalSent > 0 ? (totalClicks / totalSent) * 100 : 0,
+          totalSent: statsData.totalSent,
+          clickRate: statsData.clickRate,
           activeCampaigns: campaignsData.filter((c) => c.status === "active").length,
           scheduledCampaigns: campaignsData.filter((c) => c.status === "scheduled").length,
         })
@@ -181,8 +181,8 @@ export const Dashboard: React.FC = () => {
                           c.status === "active"
                             ? "bg-yellow-600 text-white"
                             : c.status === "completed"
-                            ? "bg-gray-100 text-gray-800"
-                            : "bg-blue-100 text-blue-800"
+                              ? "bg-gray-100 text-gray-800"
+                              : "bg-blue-100 text-blue-800"
                         }
                       >
                         {c.status ?? "Rascunho"}
