@@ -13,13 +13,13 @@ import { Modal } from "../components/ui/Modal"
 import { Input } from "../components/ui/Input"
 import { Textarea } from "../components/ui/Textarea"
 import { Select } from "../components/ui/Select"
-import { getCampaigns, getTemplates, createCampaign, Campaign, Template, deleteCampaign } from "../service/CampaignService"
+import { getCampaigns, getTemplates, createCampaign, Campaign, Template, deleteCampaign, updateCampaign } from "../service/CampaignService"
 
 export const Campaigns: React.FC = () => {
   const navigate = useNavigate()
 
-  const [editId, setEditId] = useState<number | null>(null);
-
+  const [editId, setEditId] = useState<string | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [templates, setTemplates] = useState<Template[]>([])
@@ -38,35 +38,52 @@ export const Campaigns: React.FC = () => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleCreateCampaign = async () => {
-    try {
-      const newCampaign = await createCampaign(formData)
-      setCampaigns((prev) => [...prev, newCampaign]) // atualiza a lista sem precisar reload
-      Swal.fire("Sucesso!", "Campanha criada com sucesso!", "success")
-      setFormData({ name: "", description: "", templateId: "" })
-      setIsModalOpen(false)
-    } catch (err) {
-      Swal.fire("Erro!", "Não foi possível criar a campanha", "error")
-    }
+  const handleOpenCreateModal = () => {
+    setFormData({ name: "", description: "", templateId: "" })
+    setIsEditing(false)
+    setEditId(null)
+    setIsModalOpen(true)
+  }
+
+  const handleOpenEditModal = (campaign: Campaign) => {
+    setFormData({
+      name: campaign.name,
+      description: campaign.description,
+      templateId: campaign.template?.id?.toString() || "",
+    })
+    setEditId(campaign.id)
+    setIsEditing(true)
+    setIsModalOpen(true)
   }
 
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setFormData({ name: "", description: "", templateId: "" })
+    setIsEditing(false)
+    setEditId(null)
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return <Badge className="bg-yellow-600 text-white">Ativa</Badge>
-      case "completed":
-        return <Badge variant="secondary">Concluída</Badge>
-      case "scheduled":
-        return <Badge className="bg-blue-100 text-blue-800">Agendada</Badge>
-      case "draft":
-        return <Badge variant="outline">Rascunho</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
+  const handleCreateCampaign = async () => {
+    try {
+      const newCampaign = await createCampaign(formData)
+      setCampaigns((prev) => [...prev, newCampaign])
+      Swal.fire("Sucesso!", "Campanha criada com sucesso!", "success")
+      handleCloseModal()
+    } catch (err) {
+      Swal.fire("Erro!", "Não foi possível criar a campanha", "error")
+    }
+  }
+
+  const handleUpdateCampaign = async () => {
+    if (!editId) return
+    try {
+      const updated = await updateCampaign(editId, formData)
+      Swal.fire("Sucesso!", "Campanha atualizada com sucesso!", "success")
+      handleCloseModal()
+      const data = await getCampaigns()
+      setCampaigns(data)
+    } catch (err) {
+      Swal.fire("Erro!", "Não foi possível atualizar a campanha", "error")
     }
   }
 
@@ -82,7 +99,7 @@ export const Campaigns: React.FC = () => {
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Campanhas</h1>
           <p className="text-gray-600">Gerencie todas as suas campanhas de email marketing</p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)}>
+        <Button onClick={handleOpenCreateModal}>
           <Plus className="mr-2 h-4 w-4" />
           Nova Campanha
         </Button>
@@ -118,7 +135,11 @@ export const Campaigns: React.FC = () => {
                       >
                         <Settings className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleOpenEditModal(campaign)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button
@@ -133,28 +154,18 @@ export const Campaigns: React.FC = () => {
                             confirmButtonText: "Deletar!",
                           }).then(async (result) => {
                             if (result.isConfirmed) {
-
                               try {
                                 await deleteCampaign(campaign.id)
-                                Swal.fire({
-                                  title: "Deletado!",
-                                  text: "Sua campanha foi excluído.",
-                                  icon: "success",
-                                });
-
+                                Swal.fire("Deletado!", "Sua campanha foi excluída.", "success")
                                 const data = await getCampaigns()
                                 setCampaigns(data)
                               } catch (error: any) {
-                                Swal.fire({
-                                  icon: "error",
-                                  title: "Erro",
-                                  text: error.message
-                                })
+                                Swal.fire("Erro!", error.message, "error")
                               }
                             }
                           })
                         }
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         className="text-red-600 hover:text-red-700 bg-transparent"
                       >
@@ -169,8 +180,12 @@ export const Campaigns: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Modal de criação */}
-      <Modal isOpen={isModalOpen} onClose={handleCloseModal} title="Nova Campanha">
+      {/* Modal de criação/edição */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        title={isEditing ? "Editar Campanha" : "Nova Campanha"}
+      >
         <div className="space-y-4">
           <Input
             label="Nome da Campanha"
@@ -201,11 +216,11 @@ export const Campaigns: React.FC = () => {
               Cancelar
             </Button>
             <Button
-              onClick={handleCreateCampaign}
+              onClick={isEditing ? handleUpdateCampaign : handleCreateCampaign}
               className="flex-1"
               disabled={!formData.name || !formData.templateId}
             >
-              Criar
+              {isEditing ? "Salvar Alterações" : "Criar"}
             </Button>
           </div>
         </div>

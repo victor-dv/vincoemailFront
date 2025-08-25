@@ -1,4 +1,5 @@
 import axios from "axios"
+import { data } from "react-router-dom"
 
 const API_URL = "http://localhost:8080"
 
@@ -21,6 +22,11 @@ export interface Campaign {
 
 interface deleteCampaign {
   id: string
+}
+interface updateCampaign {
+  name: string,
+  description: string,
+  template: Template
 }
 
 const URL_API = "http://localhost:8080/"
@@ -46,6 +52,18 @@ export const createCampaign = async (campaign: {
 
 
 export const deleteCampaign = async (id: string) => {
-    const response = await axios.delete(URL_API + `campaign/${id} `)
-    return response.data
+  const response = await axios.delete(URL_API + `campaign/${id} `)
+  return response.data
+}
+
+export const updateCampaign = async (
+  id: string | number,
+  campaign: {
+    name: string
+    description: string
+    templateId: string | number
+  }
+) => {
+  const res = await axios.put(`${API_URL}/campaigns/${id}`, campaign)
+  return res.data
 }
