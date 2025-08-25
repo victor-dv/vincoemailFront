@@ -1,21 +1,60 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Eye, EyeOff, User } from 'lucide-react';
 import swal from 'sweetalert';
-import { registerUser } from '../service/UserService';
+import { registerUser, updateUser } from '../service/UserService';
 import { Select } from '../components/ui/Select';
+import { jwtDecode } from 'jwt-decode';
+
+interface JwtPayload {
+  sub: string;
+  name: string;
+  username: string;
+  email: string;
+  role: string;
+}
 
 export const Settings: React.FC = () => {
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
 
+  //Criar user
   const [name, setName] = useState("")
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [password, setPassword] = useState("")
   const [role, setRole] = useState("")
+
+
+  //Update user
+  const [id, setId] = useState("")
+  const [nameUser, setNameUser] = useState("")
+  const [usernameUser, setUsernameUser] = useState("")
+
+  useEffect(() => {
+    const token = sessionStorage.getItem("jwtToken");
+    if (token) {
+      const decoded = jwtDecode<JwtPayload>(token);
+      setId(decoded.sub);
+      setNameUser(decoded.name);
+      setUsernameUser(decoded.username);
+    }
+  }, []);
+
+  const handleUpdate = async () => {
+    try {
+      await updateUser(id, { name: nameUser, username: usernameUser });
+      swal({ icon: "success", title: "Alterações realizadas com sucesso!" });
+    } catch (err: any) {
+      swal({
+        icon: "error",
+        title: "Erro ao atualizar usuário",
+        text: err.response?.data?.message || "Tente novamente mais tarde",
+      });
+    }
+  };
 
   const handleCreateUser = async () => {
     if (password !== confirmPassword) {
@@ -72,21 +111,16 @@ export const Settings: React.FC = () => {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Nome</label>
-                <Input placeholder="Seu nome" defaultValue={user.firstName} />
+                <Input value={nameUser} onChange={(e) => setNameUser(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Username</label>
-                <Input placeholder="Seu sobrenome" defaultValue={user.lastName} />
+                <Input value={usernameUser} onChange={(e) => setUsernameUser(e.target.value)} />
               </div>
             </div>
 
+            <Button onClick={handleUpdate}>Salvar Alterações</Button>
 
-            <Button onClick={() => swal({
-              icon: "success",
-              title: "Alterações realizadas com sucesso!"
-            })}>
-              Salvar Alterações
-            </Button>
           </CardContent>
         </Card>
       </div>
