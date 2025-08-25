@@ -19,6 +19,12 @@ export interface Campaign {
   createdAt: string
 }
 
+interface deleteCampaign {
+  id: string
+}
+
+const URL_API = "http://localhost:8080/"
+
 export const getCampaigns = async (): Promise<Campaign[]> => {
   const res = await axios.get(`${API_URL}/campaigns/`)
   return res.data
@@ -36,4 +42,10 @@ export const createCampaign = async (campaign: {
 }) => {
   const res = await axios.post(`${API_URL}/campaigns/`, campaign)
   return res.data
+}
+
+
+export const deleteCampaign = async (id: string) => {
+    const response = await axios.delete(URL_API + `campaign/${id} `)
+    return response.data
 }

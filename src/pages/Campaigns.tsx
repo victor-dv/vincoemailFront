@@ -13,10 +13,12 @@ import { Modal } from "../components/ui/Modal"
 import { Input } from "../components/ui/Input"
 import { Textarea } from "../components/ui/Textarea"
 import { Select } from "../components/ui/Select"
-import { getCampaigns, getTemplates, createCampaign, Campaign, Template } from "../service/CampaignService"
+import { getCampaigns, getTemplates, createCampaign, Campaign, Template, deleteCampaign } from "../service/CampaignService"
 
 export const Campaigns: React.FC = () => {
   const navigate = useNavigate()
+
+  const [editId, setEditId] = useState<number | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
@@ -129,15 +131,32 @@ export const Campaigns: React.FC = () => {
                             confirmButtonColor: "#3085d6",
                             cancelButtonColor: "#d33",
                             confirmButtonText: "Deletar!",
-                          }).then((result) => {
+                          }).then(async (result) => {
                             if (result.isConfirmed) {
-                              Swal.fire("Deletado!", "Sua campanha foi excluída.", "success")
+
+                              try {
+                                await deleteCampaign(campaign.id)
+                                Swal.fire({
+                                  title: "Deletado!",
+                                  text: "Sua campanha foi excluído.",
+                                  icon: "success",
+                                });
+
+                                const data = await getCampaigns()
+                                setCampaigns(data)
+                              } catch (error: any) {
+                                Swal.fire({
+                                  icon: "error",
+                                  title: "Erro",
+                                  text: error.message
+                                })
+                              }
                             }
                           })
                         }
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        className="text-red-600 hover:text-red-700"
+                        className="text-red-600 hover:text-red-700 bg-transparent"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
