@@ -1,5 +1,6 @@
 import axios from "axios"
 import { data } from "react-router-dom"
+import api from "./TokenService"
 
 const API_URL = "http://localhost:8080"
 
@@ -32,12 +33,12 @@ interface updateCampaign {
 const URL_API = "http://localhost:8080/"
 
 export const getCampaigns = async (): Promise<Campaign[]> => {
-  const res = await axios.get(`${API_URL}/campaigns/`)
+  const res = await api.get(`${API_URL}/campaigns/`)
   return res.data
 }
 
 export const getTemplates = async (): Promise<Template[]> => {
-  const res = await axios.get(`${API_URL}/templates`)
+  const res = await api.get(`${API_URL}/templates`)
   return res.data
 }
 
@@ -46,13 +47,13 @@ export const createCampaign = async (campaign: {
   description: string
   templateId: string | number
 }) => {
-  const res = await axios.post(`${API_URL}/campaigns/`, campaign)
+  const res = await api.post(`${API_URL}/campaigns/`, campaign)
   return res.data
 }
 
 
 export const deleteCampaign = async (id: string) => {
-  const response = await axios.delete(URL_API + `campaign/${id} `)
+  const response = await api.delete(URL_API + `campaigns/${id}`)
   return response.data
 }
 
@@ -64,12 +65,11 @@ export const updateCampaign = async (
     templateId: string | number
   }
 ) => {
-  const res = await axios.put(`${API_URL}/campaigns/${id}`, campaign)
+  const res = await api.put(`${API_URL}/campaigns/${id}`, campaign)
   return res.data
 }
 
 export const getCampaignStats = async (id: string) => {
-  const res = await fetch(`/campaigns/${id}/`);
-  if (!res.ok) throw new Error("Erro ao buscar estatísticas da campanha");
-  return res.json();
+const res = await api.get(`${API_URL}/campaigns/${id}`)
+return res.data
 };

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { data } from "react-router-dom";
+import api from "./TokenService";
 
 interface CreateTemplate {
     name: string,
@@ -31,22 +32,22 @@ interface UpdateTemplate {
 const URL_API = "http://localhost:8080/"
 
 export const createTemplate = async (templateData: CreateTemplate) => {
-    const response = await axios.post(URL_API + "templates", templateData)
+    const response = await api.post(URL_API + "templates", templateData)
     return response.data
 }
 
 export const getAllTemplates = async () => {
-    const response = await axios.get(URL_API + "templates")
+    const response = await api.get(URL_API + "templates")
     return response.data
 }
 
 export const deleteTemplates = async (id: number) => {
-    const response = await axios.delete(URL_API + `templates/${id} `)
+    const response = await api.delete(URL_API + `templates/${id} `)
     return response.data
 }
 
 export const updateTemplates = async (id: number, data: CreateTemplate) => {
-  const response = await axios.put(`${URL_API}templates/${id}`, data, {
+  const response = await api.put(`${URL_API}templates/${id}`, data, {
     headers: {
       "Content-Type": "application/json"
     }

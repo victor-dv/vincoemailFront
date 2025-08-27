@@ -10,6 +10,7 @@ import { Input } from "../components/ui/Input"
 import { Textarea } from "../components/ui/Textarea"
 import { Select } from "../components/ui/Select"
 import { Mail, MousePointer, Send, Plus } from "lucide-react"
+import api from "../service/TokenService"
 
 // Tipagem para campanha
 interface Campaign {
@@ -52,27 +53,27 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // usa Promise.all com axios
         const [campaignRes, templateRes, statsRes] = await Promise.all([
-          fetch("http://localhost:8080/campaigns/"),
-          fetch("http://localhost:8080/templates"),
-          fetch("http://localhost:8080/emails/stats")
+          api.get("/campaigns/"),
+          api.get("/templates"),
+          api.get("/emails/stats")
         ])
-        const campaignsData: Campaign[] = await campaignRes.json()
-        const templatesData: Template[] = await templateRes.json()
-        const statsData = await statsRes.json()
+
+        const campaignsData: Campaign[] = campaignRes.data
+        const templatesData: Template[] = templateRes.data
+        const statsData = statsRes.data
 
         // Itera sobre cada campanha para buscar estatísticas detalhadas
         const campaignsWithStats = await Promise.all(
           campaignsData.map(async (campaign) => {
             try {
-              const individualStatsRes = await fetch(`http://localhost:8080/campaigns/${campaign.id}/`)
-              if (!individualStatsRes.ok) throw new Error("Erro ao buscar estatísticas da campanha")
-              const individualStats = await individualStatsRes.json()
+              const individualStatsRes = await api.get(`/campaigns/${campaign.id}/`)
               return {
                 ...campaign,
-                sent: individualStats.sent,
-                opens: individualStats.opens,
-                clicks: individualStats.clicks,
+                sent: individualStatsRes.data.sent,
+                opens: individualStatsRes.data.opens,
+                clicks: individualStatsRes.data.clicks,
               }
             } catch (error) {
               console.error(`Erro ao buscar estatísticas para a campanha ${campaign.id}:`, error)
@@ -193,7 +194,7 @@ export const Dashboard: React.FC = () => {
                   key={c.id}
                   className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
                 >
-                  <div className="space-y-1">
+                  <div className="space-y-4">
                     <p className="font-medium leading-none">{c.name}</p>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Badge
@@ -207,13 +208,13 @@ export const Dashboard: React.FC = () => {
                       >
                         {c.status ?? "Rascunho"}
                       </Badge>
-                      <span>•</span>
-                      <span>{c.sent ?? 0} enviados</span>
-                    </div>
+                      {/*       <span>•</span> */}
+                      {/*                       <span>{c.sent ?? 0} enviados</span>
+ */}                    </div>
                   </div>
                   <div className="text-right text-sm">
-                    <div className="font-medium text-yellow-700">{c.opens ?? 0} aberturas</div>
-                    <div className="text-gray-600">{c.clicks ?? 0} cliques</div>
+                    {/*     <div className="font-medium text-yellow-700">{c.opens ?? 0} aberturas</div>
+                    <div className="text-gray-600">{c.clicks ?? 0} cliques</div> */}
                   </div>
                 </div>
               ))}

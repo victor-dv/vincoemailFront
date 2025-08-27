@@ -212,7 +212,7 @@ export const CampaignInputs: React.FC = () => {
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-              Importar Clientes - Campanha {campaignId}
+              Importar Clientes 
             </h1>
             <p className="text-gray-600">Importe dados de planilhas Excel (.xlsx) e edite antes de enviar</p>
           </div>
